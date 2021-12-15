@@ -2,7 +2,9 @@
 
 use v5.36;
 use warnings;
+
 use Test::More;
+use B qw( svref_2object );
 
 use feature 'class';
 
@@ -26,13 +28,16 @@ subtest 'A simple class' => sub {
     }
 
     my $p = Point->new;
+    is svref_2object($p)->REFCNT, 1, '$p has refcount 1 initially';
 
     is $p->to_string, "(10,20)",
       'We should be able to see a string representation of a point';
+    is svref_2object($p)->REFCNT, 1, '$p has refcount 1 after method';
 
     is $p->total, 1, 'We should have one point created';
     $p->set( 4, 5 );
     is $p->to_string, "(4,5)", 'We should be able to set a new point value';
+    is svref_2object($p)->REFCNT, 1, '$p has refcount 1 after method';
 
     ok my $p2 = Point->new, 'We should be able to create a second point';
     is $p2->total, 2, '... and see that we now have two points total';
@@ -43,6 +48,9 @@ subtest 'A simple class' => sub {
       'Our new point object should have the correct defaults';
     is $p->to_string, "(4,5)",
       '... but our previous object should maintain its own state';
+
+    is svref_2object($p)->REFCNT, 1,  '$p has refcount 1 after method';
+    is svref_2object($p2)->REFCNT, 1, '$p2 has refcount 1 after method';
 
     undef $p;
     is $p2->total, 1,
